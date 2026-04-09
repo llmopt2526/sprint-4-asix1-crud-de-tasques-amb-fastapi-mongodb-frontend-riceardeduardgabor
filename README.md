@@ -2,7 +2,7 @@
 ### Estructura del projecte
 
 A diferència d’altres projectes més complexos, en aquest cas **treballareu amb una estructura simple**, igual que a l’exemple oficial. Tot el backend s’ubica en un únic fitxer (`app.py`), amb l’objectiu de centrar-se en **aprendre CRUD amb FastAPI i MongoDB** abans de **modularitzar el codi**.
-
+.
 El projecte ha de mantenir una **estructura com aquesta**:
 
 ```
