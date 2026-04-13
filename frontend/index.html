@@ -1,9 +1,92 @@
-<!doctype html>
-<html>
-  <head>
-    <title>This is the title of the webpage!</title>
-  </head>
-  <body>
-    <p>This is an example paragraph. Anything in the <strong>body</strong> tag will appear on the page, just like this <strong>p</strong> tag and its contents.</p>
-  </body>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineRicky - Gestor de Pelis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white font-sans">
+    <div class="container mx-auto p-8">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-yellow-500 mb-2">🎬 CineRicky</h1>
+            <p class="text-slate-400">La meva col·lecció personal de pel·lícules (MongoDB Atlas)</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <section class="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+                <h2 class="text-2xl font-semibold mb-6 border-b border-slate-700 pb-2">Afegir Nova Pel·lícula</h2>
+                <form id="movieForm" class="space-y-4">
+                    <input type="text" id="titol" placeholder="Títol de la peli" class="w-full p-3 rounded bg-slate-700 border border-slate-600 focus:outline-none focus:border-yellow-500" required>
+                    <textarea id="descripcio" placeholder="De què va?" class="w-full p-3 rounded bg-slate-700 border border-slate-600 focus:outline-none focus:border-yellow-500" required></textarea>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="genere" placeholder="Gènere" class="p-3 rounded bg-slate-700 border border-slate-600" required>
+                        <input type="number" id="puntuacio" placeholder="Nota (1-5)" min="1" max="5" class="p-3 rounded bg-slate-700 border border-slate-600" required>
+                    </div>
+                    <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold py-3 rounded transition duration-300">Guardar a la Col·lecció</button>
+                </form>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-semibold mb-6 border-b border-slate-700 pb-2">Les meves Pelis</h2>
+                <div id="moviesList" class="space-y-4">
+                    </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000/movies";
+
+        // Funció per carregar pelis
+        async function loadMovies() {
+            const res = await fetch(API_URL);
+            const movies = await res.json();
+            const list = document.getElementById('moviesList');
+            list.innerHTML = '';
+            
+            movies.forEach(movie => {
+                list.innerHTML += `
+                    <div class="bg-slate-800 p-4 rounded-lg border-l-4 border-yellow-500 flex justify-between items-center shadow-lg">
+                        <div>
+                            <h3 class="text-xl font-bold">${movie.titol} <span class="text-sm text-yellow-500">⭐ ${movie.puntuacio}</span></h3>
+                            <p class="text-slate-400 text-sm">${movie.descripcio}</p>
+                            <span class="text-xs bg-slate-700 px-2 py-1 rounded mt-2 inline-block">${movie.genere}</span>
+                        </div>
+                        <button onclick="deleteMovie('${movie._id}')" class="text-red-500 hover:text-red-400 font-bold ml-4">❌</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Funció per guardar peli
+        document.getElementById('movieForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const movie = {
+                titol: document.getElementById('titol').value,
+                descripcio: document.getElementById('descripcio').value,
+                genere: document.getElementById('genere').value,
+                puntuacio: parseInt(document.getElementById('puntuacio').value),
+                estat: "pendent"
+            };
+
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(movie)
+            });
+            
+            e.target.reset();
+            loadMovies();
+        };
+
+        // Funció per esborrar
+        async function deleteMovie(id) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            loadMovies();
+        }
+
+        loadMovies();
+    </script>
+</body>
 </html>

@@ -102,3 +102,14 @@ class StudentModel(BaseModel):
         },
     )
 ```
+# Sprint 4 - Gestor de Pel·lícules (Ricky)
+
+## Estat actual del projecte:
+- [x] **Backend**: API creada amb FastAPI.
+- [x] **Base de dades**: Connectat amb èxit a **MongoDB Atlas** (Cloud).
+- [x] **Documentació**: Swagger UI funcional a `/docs`.
+- [x] **Frontend**: Interfície HTML/JS bàsica creada i connectada a l'API.
+
+## Propers passos:
+- [ ] Millorar el disseny del Frontend.
+- [ ] Afegir més funcionalitats com "marcar com a vista".
