@@ -1,70 +1,90 @@
 import os
 from typing import Optional, List
-
 from fastapi import FastAPI, Body, HTTPException, status
-from fastapi.responses import Response
-from pydantic import ConfigDict, BaseModel, Field, EmailStr
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import ConfigDict, BaseModel, Field
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
-
 from bson import ObjectId
-import asyncio
 from pymongo import AsyncMongoClient
-from pymongo import ReturnDocument
 
 # ------------------------------------------------------------------------ #
-#                         Inicialització de l'aplicació                    #
+#                          1. Inicialitzacio de l'API                      #
 # ------------------------------------------------------------------------ #
-# Creació de la instància FastAPI amb informació bàsica de l'API
 app = FastAPI(
-    title="Student Course API",
-    summary="Exemple d'API REST amb FastAPI i MongoDB per gestionar informació d'estudiants",
+    title="API Cine Riceard",
+    summary="Sistema de gestio de dades per al projecte Sprint 4",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # ------------------------------------------------------------------------ #
-#                   Configuració de la connexió amb MongoDB                #
+#                 2. Configuracio de la connexio amb MongoDB               #
 # ------------------------------------------------------------------------ #
-# Creem el client de MongoDB utilitzant la URL de connexió emmagatzemada
-# a les variables d'entorn. Això evita incloure credencials dins del codi.
-client = AsyncMongoClient(os.environ["MONGODB_URL"])
+MONGO_URL = "mongodb+srv://riceardeduardgabor_db_user:bQrB2WEDUEmUyJBd@cluster1.m79fhot.mongodb.net/cine_db?retryWrites=true&w=majority"
+client = AsyncMongoClient(MONGO_URL)
+db = client.cine_db
+movie_collection = db.get_collection("movies")
 
-# Selecció de la base de dades i de la col·lecció
-db = client.college
-student_collection = db.get_collection("students")
-
-# Els documents de MongoDB tenen `_id` de tipus ObjectId.
-# Aquí definim PyObjectId com un string serialitzable per JSON,
-# que serà utilitzat als models Pydantic.
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 # ------------------------------------------------------------------------ #
-#                            Definició dels models                         #
+#                          3. Definicio dels models                        #
 # ------------------------------------------------------------------------ #
-class StudentModel(BaseModel):
-    """
-    Model que representa un estudiant.
-    Conté tots els camps obligatoris i opcional `_id`.
-    """
-    # Clau primària de l'estudiant. 
-    # MongoDB utilitza `_id`, però l'API exposa aquest camp com `id`.
+class MovieModel(BaseModel):
+    """ Model de dades per a la gestio de pel·licules """
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    
-    # Camps obligatoris de l'estudiant
-    name: str = Field(...)
-    email: EmailStr = Field(...)
-    course: str = Field(...)
-    gpa: float = Field(..., le=4.0)
+    titol: str = Field(...)
+    descripcio: str = Field(...)
+    estat: str = Field(...)          # pendent de veure / vista
+    puntuacio: int = Field(..., ge=1, le=5)
+    genere: str = Field(...)
+    usuari: str = Field(...)         # Riceard
 
-    # Configuració addicional del model Pydantic
     model_config = ConfigDict(
-        populate_by_name=True,  # Permet utilitzar alias al serialitzar/deserialitzar
-        arbitrary_types_allowed=True,  # Permet tipus personalitzats com ObjectId
-        json_schema_extra={
-            "example": {
-                "name": "Jane Doe",
-                "email": "jdoe@example.com",
-                "course": "Experiments, Science, and Fashion in Nanophotonics",
-                "gpa": 3.0,
-            }
-        },
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
     )
+
+# ------------------------------------------------------------------------ #
+#                          4. Rutes de l'API (CRUD)                        #
+# ------------------------------------------------------------------------ #
+
+@app.get("/movies", response_model=List[MovieModel])
+async def llistar_pelicules():
+    """ Jo llisto tots els registres de la base de dades """
+    return await movie_collection.find().to_list(1000)
+
+@app.post("/movies", status_code=status.HTTP_201_CREATED, response_model=MovieModel)
+async def crear_pelicula(movie: MovieModel = Body(...)):
+    """ Jo creo un nou registre a la col·leccio """
+    new_movie = await movie_collection.insert_one(
+        movie.model_dump(by_alias=True, exclude=["id"])
+    )
+    return await movie_collection.find_one({"_id": new_movie.inserted_id})
+
+@app.put("/movies/{id}", response_model=MovieModel)
+async def actualitzar_pelicula(id: str, movie: MovieModel = Body(...)):
+    """ Jo modifico un registre existent """
+    update_data = movie.model_dump(by_alias=True, exclude=["id"])
+    resultat = await movie_collection.find_one_and_update(
+        {"_id": ObjectId(id)},
+        {"$set": update_data},
+        return_document=True
+    )
+    if resultat:
+        return resultat
+    raise HTTPException(status_code=404, detail="Registre no trobat")
+
+@app.delete("/movies/{id}")
+async def eliminar_pelicula(id: str):
+    """ Jo elimino un registre de forma permanent """
+    resultat = await movie_collection.delete_one({"_id": ObjectId(id)})
+    if resultat.deleted_count == 1:
+        return {"missatge": "Registre eliminat correctament"}
+    raise HTTPException(status_code=404, detail="Error en eliminar")
