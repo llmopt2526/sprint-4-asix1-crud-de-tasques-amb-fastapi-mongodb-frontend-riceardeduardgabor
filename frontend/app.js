@@ -1,44 +1,53 @@
 const API_URL = "http://127.0.0.1:8000/movies";
 
-document.addEventListener('DOMContentLoaded', loadMovies);
+document.addEventListener("DOMContentLoaded", carregarDades);
 
-async function loadMovies() {
-    const res = await fetch(API_URL);
-    const movies = await res.json();
-    const tableBody = document.getElementById('moviesTableBody');
-    tableBody.innerHTML = '';
-    movies.forEach(m => {
-        tableBody.innerHTML += `
-            <tr>
-                <td><strong>${m.titol}</strong><br><small>${m.genere}</small></td>
-                <td>⭐ ${m.puntuacio}/5</td>
-                <td><button class="button button-outline" onclick="deleteMovie('${m._id}')">🗑️ Borrar</button></td>
-            </tr>`;
+async function carregarDades() {
+    const resposta = await fetch(API_URL);
+    const dades = await resposta.json();
+    
+    const llista = document.getElementById("movies-list");
+    llista.innerHTML = "";
+
+    dades.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.innerHTML = `
+            <h3>${item.titol.toUpperCase()}</h3>
+            <p>${item.descripcio}</p>
+            <p>GENERE: ${item.genere} | NOTA: ${item.puntuacio}/5</p>
+            <p>ESTAT: ${item.estat} | USUARI: ${item.usuari}</p>
+            <button class="delete-btn" onclick="eliminarDada('${item._id || item.id}')">ELIMINAR REGISTRE</button>
+        `;
+        llista.appendChild(card);
     });
 }
 
-document.getElementById('movieForm').onsubmit = async (e) => {
+document.getElementById("movie-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const movie = {
-        titol: document.getElementById('titol').value,
-        descripcio: document.getElementById('descripcio').value,
-        genere: document.getElementById('genere').value,
-        puntuacio: parseInt(document.getElementById('puntuacio').value),
-        estat: "pendent de veure",
-        usuari: "Ricky"
-    };
-    await fetch(API_URL, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(movie)
-    });
-    e.target.reset();
-    loadMovies();
-};
 
-async function deleteMovie(id) {
-    if(confirm('Segur?')) {
-        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-        loadMovies();
+    const novaDada = {
+        titol: document.getElementById("titol").value,
+        descripcio: document.getElementById("descripcio").value,
+        genere: document.getElementById("genere").value,
+        puntuacio: parseInt(document.getElementById("puntuacio").value),
+        estat: document.getElementById("estat").value,
+        usuari: document.getElementById("usuari").value
+    };
+
+    await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(novaDada)
+    });
+
+    e.target.reset();
+    carregarDades();
+});
+
+async function eliminarDada(id) {
+    if (confirm("Confirmar eliminacio definitiva?")) {
+        await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+        carregarDades();
     }
 }

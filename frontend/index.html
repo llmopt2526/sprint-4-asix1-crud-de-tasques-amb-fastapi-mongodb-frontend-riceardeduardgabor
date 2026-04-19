@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>SISTEMA CRUD - RICEARD</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>GESTIO DE PEL·LICULES / RICEARD GABOR</h1>
+
+        <form id="movie-form">
+            <input type="text" id="titol" placeholder="Titol" required>
+            <textarea id="descripcio" placeholder="Descripcio"></textarea>
+            <input type="text" id="genere" placeholder="Genere">
+            <input type="number" id="puntuacio" placeholder="Puntuacio (1-5)" min="1" max="5">
+            <select id="estat">
+                <option value="pendent de veure">Pendent de veure</option>
+                <option value="vista">Vista</option>
+            </select>
+            <input type="text" id="usuari" placeholder="Usuari responsable (Riceard)" required>
+            <button type="submit">REGISTRAR DADES</button>
+        </form>
+
+        <div id="movies-list"></div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
