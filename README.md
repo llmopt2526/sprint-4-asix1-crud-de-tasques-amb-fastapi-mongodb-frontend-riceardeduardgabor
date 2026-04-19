@@ -11,8 +11,9 @@ Aquest projecte consisteix en un sistema per gestionar una llista personal de pe
 El projecte s'ha organitzat seguint l'estructura simple demanada per l'enunciat:
 
 * **`backend/app.py`**: Conté tota la lògica del servidor, la connexió a la base de dades i els models de dades.
+* **`backend/requirements.txt`**: Llista de dependències de Python.
 * **`frontend/`**: Conté la interfície d'usuari (HTML, CSS minimalista i JavaScript).
-* **`tests/`**: Inclou el fitxer de proves realitzades amb Postman.
+* **`tests/`**: Inclou el fitxer de proves realitzades amb Postman (`Postman_API_tests.json`).
 
 ---
 
@@ -28,7 +29,7 @@ He connectat el sistema a **MongoDB Atlas**. Per fer-ho, he utilitzat la llibrer
 He programat les quatre operacions bàsiques del CRUD:
 * **GET**: Per llistar totes les pel·lícules.
 * **POST**: Per afegir noves entrades des del formulari.
-* **PUT**: Per modificar d'estat o dades d'una pel·lícula existent.
+* **PUT**: Per modificar l'estat o dades d'una pel·lícula existent.
 * **DELETE**: Per eliminar registres del sistema.
 
 ### Pas 4: Interfície Frontend
