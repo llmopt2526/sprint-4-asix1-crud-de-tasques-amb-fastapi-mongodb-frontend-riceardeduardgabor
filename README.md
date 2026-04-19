@@ -1,115 +1,45 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/ULL36zWV)
-### Estructura del projecte
+SPRINT 4: GESTIÓ DE PEL·LÍCULES
+Desenvolupador: Riceard Gabor
 
-A diferència d’altres projectes més complexos, en aquest cas **treballareu amb una estructura simple**, igual que a l’exemple oficial. Tot el backend s’ubica en un únic fitxer (`app.py`), amb l’objectiu de centrar-se en **aprendre CRUD amb FastAPI i MongoDB** abans de **modularitzar el codi**.
-.
-El projecte ha de mantenir una **estructura com aquesta**:
+Projecte: Aplicació CRUD (Crear, Llegir, Actualitzar, Esborrar)
 
-```
-project/
-├── README.md
-├── backend/                # FastAPI + MongoDB
-│   ├── app.py              # Fitxer principal (tota la lògica)
-│   └── requirements.txt    # Dependències
-│
-├── frontend/           # Interfície web
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
-│
-└── tests/              # Tests amb Postman
-    └── Postman_API_tests.json
-```
-#### Fitxer `app.py`
+1. Descripció del Projecte
+Aquest projecte consisteix en un sistema per gestionar una llista personal de pel·lícules. L'objectiu ha estat connectar una interfície web (Frontend) amb un servidor de dades (Backend) i una base de dades al núvol.
 
-En projectes més complexos, es separaria, per exemple, la connexió a MongoDB en un fitxer a banda, anomenat `database.py`; i, els models, en `models.py`.
-En el nostre cas, tot el backend l'implementarem dins del fitxer `app.py` per simplificar.
+2. Estructura del Sistema
+El projecte s'ha organitzat seguint l'estructura simple demanada:
 
-Tot i això, és **molt recomanable**:
-- Afegir **grans comentaris per separar lògica** de connexió, models i endpoints.
-- **Documentar clarament cada secció** per facilitar la lectura i localització d’errors.
+backend/app.py: Conté tota la lògica del servidor, la connexió a la base de dades i els models de dades.
 
-Un bon exemple seria aquest:
-```python
-import os
-from typing import Optional, List
+frontend/: Conté la interfície d'usuari (HTML, CSS minimalista i JavaScript).
 
-from fastapi import FastAPI, Body, HTTPException, status
-from fastapi.responses import Response
-from pydantic import ConfigDict, BaseModel, Field, EmailStr
-from pydantic.functional_validators import BeforeValidator
-from typing_extensions import Annotated
+tests/: Inclou el fitxer de proves realitzades amb Postman.
 
-from bson import ObjectId
-import asyncio
-from pymongo import AsyncMongoClient
-from pymongo import ReturnDocument
+3. Procés de Desenvolupament
+Pas 1: Configuració del Backend
+He utilitzat FastAPI per crear el servidor. He definit un model de dades per a les pel·lícules que inclou: títol, descripció, gènere, puntuació (1-5), estat (pendent/vista) i usuari.
 
-# ------------------------------------------------------------------------ #
-#                         Inicialització de l'aplicació                    #
-# ------------------------------------------------------------------------ #
-# Creació de la instància FastAPI amb informació bàsica de l'API
-app = FastAPI(
-    title="Student Course API",
-    summary="Exemple d'API REST amb FastAPI i MongoDB per gestionar informació d'estudiants",
-)
+Pas 2: Base de Dades
+He connectat el sistema a MongoDB Atlas. Per fer-ho, he utilitzat la llibreria PyMongo Async, que permet guardar i recuperar la informació de forma eficient sense bloquejar el servidor.
 
-# ------------------------------------------------------------------------ #
-#                   Configuració de la connexió amb MongoDB               #
-# ------------------------------------------------------------------------ #
-# Creem el client de MongoDB utilitzant la URL de connexió emmagatzemada
-# a les variables d'entorn. Això evita incloure credencials dins del codi.
-client = AsyncMongoClient(os.environ["MONGODB_URL"])
+Pas 3: Creació de l'API (Endpoints)
+He programat les quatre operacions bàsiques:
 
-# Selecció de la base de dades i de la col·lecció
-db = client.college
-student_collection = db.get_collection("students")
+GET: Per veure totes les pel·lícules guardades.
 
-# Els documents de MongoDB tenen `_id` de tipus ObjectId.
-# Aquí definim PyObjectId com un string serialitzable per JSON,
-# que serà utilitzat als models Pydantic.
-PyObjectId = Annotated[str, BeforeValidator(str)]
+POST: Per afegir noves entrades des del formulari.
 
-# ------------------------------------------------------------------------ #
-#                            Definició dels models                        #
-# ------------------------------------------------------------------------ #
-class StudentModel(BaseModel):
-    """
-    Model que representa un estudiant.
-    Conté tots els camps obligatoris i opcional `_id`.
-    """
-    # Clau primària de l'estudiant. 
-    # MongoDB utilitza `_id`, però l'API exposa aquest camp com `id`.
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    
-    # Camps obligatoris de l'estudiant
-    name: str = Field(...)
-    email: EmailStr = Field(...)
-    course: str = Field(...)
-    gpa: float = Field(..., le=4.0)
+PUT: Per modificar l'estat o les dades d'una pel·lícula.
 
-    # Configuració addicional del model Pydantic
-    model_config = ConfigDict(
-        populate_by_name=True,  # Permet utilitzar alias al serialitzar/deserialitzar
-        arbitrary_types_allowed=True,  # Permet tipus personalitzats com ObjectId
-        json_schema_extra={
-            "example": {
-                "name": "Jane Doe",
-                "email": "jdoe@example.com",
-                "course": "Experiments, Science, and Fashion in Nanophotonics",
-                "gpa": 3.0,
-            }
-        },
-    )
-```
-# Sprint 4 - Gestor de Pel·lícules (Ricky)
+DELETE: Per eliminar registres del sistema.
 
-## Estat actual del projecte:
-- [x] **Backend**: API creada amb FastAPI.
-- [x] **Base de dades**: Connectat amb èxit a **MongoDB Atlas** (Cloud).
-- [x] **Documentació**: Swagger UI funcional a `/docs`.
-- [x] **Frontend**: Interfície HTML/JS bàsica creada i connectada a l'API.
+Pas 4: Interfície Frontend
+He creat una web amb un disseny minimalista en blanc i negre. He utilitzat JavaScript (Fetch) per fer que la web es comuniqui en temps real amb el Backend sense haver de recarregar la pàgina.
 
-## Propers passos:
-- [ ] Millorar el disseny del Frontend.
-- [ ] Afegir més funcionalitats com "marcar com a vista".
+Pas 5: Verificació i Tests
+He validat que tots els punts d'accés (endpoints) funcionen correctament utilitzant Postman, exportant els resultats a la carpeta de tests.
+
+4. Com executar el projecte
+Activar el servidor: python -m uvicorn backend.app:app --reload
+
+Obrir el fitxer frontend/index.html al navegador.
